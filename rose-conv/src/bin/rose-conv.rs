@@ -24,7 +24,7 @@ const SERIALIZE_VALUES: [&'static str; 14] = [
     "zsc",
 ];
 
-const DESERIALIZE_VALUES: [&'static str; 5] = ["idx", "lit", "stb", "stl", "zsc"];
+const DESERIALIZE_VALUES: [&'static str; 6] = ["idx", "lit", "stb", "stl", "zsc", "tsi"];
 
 #[derive(Debug, Deserialize, Serialize)]
 struct TilemapTile {
@@ -100,6 +100,12 @@ fn main() {
                         .help("Keep the original file extension in addition to the next one, e.g. list_zone.stb.csv")
                         .required(false)
                         .takes_value(false)
+                ).arg(
+                    Arg::with_name("pretty")
+                        .long("pretty")
+                        .help("Outputs the JSON in a pretty formatted way (more human readable)")
+                        .required(false)
+                        .takes_value(false)
                 ),
         )
         .subcommand(
@@ -173,6 +179,7 @@ fn serialize(matches: &ArgMatches) -> Result<(), Error> {
     let out_dir = Path::new(matches.value_of("out_dir").unwrap_or_default());
     let input = Path::new(matches.value_of("input").unwrap_or_default());
     let input_type = matches.value_of("type").unwrap_or_default();
+    let pretty = matches.is_present("pretty");
 
     if !input.exists() {
         bail!("File does not exist: {}", input.display());
@@ -199,17 +206,17 @@ fn serialize(matches: &ArgMatches) -> Result<(), Error> {
         "stb" => STB::from_path(&input)?.to_csv()?,
         "stl" => STL::from_path(&input)?.to_csv()?,
         // JSON
-        "him" => HIM::from_path(&input)?.to_json()?,
-        "idx" => IDX::from_path(&input)?.to_json()?,
-        "ifo" => IFO::from_path(&input)?.to_json()?,
-        "lit" => LIT::from_path(&input)?.to_json()?,
-        "til" => TIL::from_path(&input)?.to_json()?,
-        "tsi" => TSI::from_path(&input)?.to_json()?,
-        "zmd" => ZMD::from_path(&input)?.to_json()?,
-        "zmo" => ZMO::from_path(&input)?.to_json()?,
-        "zms" => ZMS::from_path(&input)?.to_json()?,
-        "zon" => ZON::from_path(&input)?.to_json()?,
-        "zsc" => ZSC::from_path(&input)?.to_json()?,
+        "him" => HIM::from_path(&input)?.to_json(pretty)?,
+        "idx" => IDX::from_path(&input)?.to_json(pretty)?,
+        "ifo" => IFO::from_path(&input)?.to_json(pretty)?,
+        "lit" => LIT::from_path(&input)?.to_json(pretty)?,
+        "til" => TIL::from_path(&input)?.to_json(pretty)?,
+        "tsi" => TSI::from_path(&input)?.to_json(pretty)?,
+        "zmd" => ZMD::from_path(&input)?.to_json(pretty)?,
+        "zmo" => ZMO::from_path(&input)?.to_json(pretty)?,
+        "zms" => ZMS::from_path(&input)?.to_json(pretty)?,
+        "zon" => ZON::from_path(&input)?.to_json(pretty)?,
+        "zsc" => ZSC::from_path(&input)?.to_json(pretty)?,
         "wstb" => {
             let f = File::open(input)?;
             let mut reader = RoseReader::new(f);
@@ -282,6 +289,7 @@ fn deserialize(matches: &ArgMatches) -> Result<(), Error> {
         "idx" => IDX::from_json(&data)?.write_to_path(&out)?,
         "lit" => IDX::from_json(&data)?.write_to_path(&out)?,
         "zsc" => IDX::from_json(&data)?.write_to_path(&out)?,
+        "tsi" => TSI::from_json(&data)?.write_to_path(&out)?,
         _ => bail!("Unsupported file type: {}", filetype),
     }
 

@@ -239,11 +239,15 @@ impl FromCsv for STL {
 }
 
 pub trait ToJson {
-    fn to_json(&self) -> Result<String, Error>
+    fn to_json(&self, pretty: bool) -> Result<String, Error>
     where
         Self: serde::ser::Serialize,
     {
-        Ok(serde_json::to_string_pretty(self)?)
+        if pretty {
+            Ok(serde_json::to_string_pretty(self)?)
+        } else {
+            Ok(serde_json::to_string(self)?)
+        }
     }
 }
 
@@ -290,7 +294,7 @@ mod tests {
     macro_rules! test_json {
         ($filetype: ident, $path: expr) => {{
             let orig_file = $filetype::from_path(&$path).unwrap();
-            let json_string = orig_file.to_json().unwrap();
+            let json_string = orig_file.to_json(false).unwrap();
             let new_file = $filetype::from_json(&json_string).unwrap();
             assert_eq!(orig_file, new_file);
         }};
